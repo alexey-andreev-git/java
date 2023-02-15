@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: springboot-app-service
+spec:
+  selector:
+    app: springboot-app
+  ports:
+  - protocol: "TCP"
+    port: 80
+    targetPort: 9001
+  type: LoadBalancer
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: springboot-app
+spec:
+  selector:
+    matchLabels:
+      app: springboot-app
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: springboot-app
+    spec:
+      containers:
+      - name: springboot-app
+        image: lab.minikin.ua:5050/gitlab-instance-c25d0811/simple-springboot-app/simple-springboot-app:89d23f35
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 9001
+      imagePullSecrets:
+        - name: regcred

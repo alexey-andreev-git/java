@@ -1,0 +1,58 @@
+variables:
+  CI_DOCKER_REPO: $CI_REGISTRY/gitlab-instance-c25d0811/simple-springboot-app
+
+stages:
+  - test
+  - build
+  - deploy
+
+before_script:
+  - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+
+test-all:
+  stage: test
+  tags: [java]
+  except:
+    - main
+  script:
+    - docker run --rm -t -v ${CI_PROJECT_DIR}/simple-springboot-app:/app --user "$(id -u):$(id -g)" openjdk:11-jdk bash -c "cd /app; ./mvnw test-compile"
+
+test-unit:
+  stage: test
+  tags: [java]
+  only:
+    - main
+  script: 
+    - docker run --rm -t -v ${CI_PROJECT_DIR}/simple-springboot-app:/app --user "$(id -u):$(id -g)" openjdk:11-jdk bash -c "cd /app; ./mvnw test"
+
+build-app:
+  stage: build
+  tags: [java]
+  only:
+    - main
+  script:
+    - docker run --rm -t -v ${CI_PROJECT_DIR}/simple-springboot-app:/app --user "$(id -u):$(id -g)" openjdk:11-jdk bash -c "cd /app; ./mvnw package"
+    - docker build -t simple-springboot-app .
+    - docker tag simple-springboot-app ${CI_DOCKER_REPO}/simple-springboot-app:$CI_COMMIT_SHORT_SHA
+
+deploy:
+  stage: deploy
+  tags: [java]
+  needs: [build-app]
+  only:
+    - main
+  script:
+    - docker push ${CI_DOCKER_REPO}/simple-springboot-app:$CI_COMMIT_SHORT_SHA
+    - kubectl create secret docker-registry regcred --docker-server=$CI_REGISTRY --docker-username=$CI_REGISTRY_USER --docker-password=$CI_REGISTRY_PASSWORD --docker-email=my@email.net || echo -n
+    - sed -i "s/89d23f35/${CI_COMMIT_SHORT_SHA}/" deployment.yaml
+    - cat deployment.yaml
+    - kubectl apply -f deployment.yaml 
+    - sleep 5
+    - kubectl get svc springboot-app-service
+  artifacts:
+    name: deployment-artifacts
+    expire_in: 1 week
+    paths:
+      - deployment.yaml
+
+
