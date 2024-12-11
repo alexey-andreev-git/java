@@ -36,3 +36,25 @@ A spring boot application can be created in three different ways
  - Autowire by Properties / Autowire by Name
  - Autowire by Setter / Autowire by Type
  - Autowire by Constructor
+
+# .gitlab-ci.yaml
+#
+# This GitLab CI configuration file is used to automate the deployment of an application to a Kubernetes cluster.
+# It defines the stages, jobs, and scripts necessary to build, test, and deploy the application.
+#
+# Stages:
+# - build: Compiles the application and prepares it for deployment.
+# - test: Runs unit tests and integration tests to ensure the application is functioning correctly.
+# - deploy: Deploys the application to the Kubernetes cluster.
+#
+# Jobs:
+# - build: Uses a Docker image to compile the application and create a Docker image for deployment.
+# - test: Executes test scripts to validate the application.
+# - deploy: Uses kubectl to apply Kubernetes manifests and deploy the application to the cluster.
+#
+# Variables:
+# - KUBERNETES_NAMESPACE: The namespace in the Kubernetes cluster where the application will be deployed.
+# - KUBERNETES_CLUSTER: The Kubernetes cluster to which the application will be deployed.
+# - DOCKER_IMAGE: The Docker image repository and tag for the application.
+#
+# This configuration ensures that the application is built, tested, and deployed in a consistent and automated manner.
